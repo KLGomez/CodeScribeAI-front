@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { docApi } from '../features/documentation/api/docApi'
 import type { Documentation } from '../types/doc.types'
+import { MermaidViewer } from '../components/shared/MermaidViewer'
 
 const SAMPLE_DEMO_DOC: Documentation = {
   _id: 'demo',
@@ -133,7 +134,26 @@ export function DocumentPage() {
 
       <main className="max-w-4xl mx-auto px-6 py-12">
         <article className="prose prose-invert prose-green max-w-none prose-headings:font-bold prose-code:text-green-400 prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-800">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={{
+              code({ className, children, ...props }) {
+                const match = /language-(\w+)/.exec(className || '')
+                const lang = match ? match[1] : ''
+                const codeText = String(children).replace(/\n$/, '')
+
+                if (lang === 'mermaid') {
+                  return <MermaidViewer chart={codeText} />
+                }
+
+                return (
+                  <code className={className} {...props}>
+                    {children}
+                  </code>
+                )
+              },
+            }}
+          >
             {doc?.content ?? ''}
           </ReactMarkdown>
         </article>

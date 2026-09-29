@@ -88,12 +88,18 @@ export function DashboardPage() {
           <div className="flex justify-center py-12">
             <div className="w-8 h-8 border-4 border-green-400 border-t-transparent rounded-full animate-spin" />
           </div>
-        ) : docs?.length === 0 ? (
-          <div className="text-center py-16 text-gray-500">
-            <p className="text-lg mb-4">Todavía no tienes documentaciones generadas.</p>
-            <Link to="/analyze" className="text-green-400 hover:underline">
-              Analiza tu primer repositorio →
-            </Link>
+        ) : (!docs || docs.length === 0) ? (
+          <div className="text-center py-16 text-gray-500 border border-dashed border-gray-800 rounded-xl p-8">
+            <p className="text-lg mb-2 text-gray-400">Todavía no tienes documentaciones generadas.</p>
+            <p className="text-sm text-gray-600 mb-6">Analiza un repositorio público o explora un documento de muestra.</p>
+            <div className="flex items-center justify-center gap-4">
+              <Link to="/analyze" className="text-white bg-green-600 hover:bg-green-500 px-4 py-2 rounded-lg text-sm transition-colors">
+                Analizar Repositorio →
+              </Link>
+              <Link to="/documentation/demo" className="text-gray-300 bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg text-sm border border-gray-700 transition-colors">
+                📄 Ver Documento de Ejemplo (Demo)
+              </Link>
+            </div>
           </div>
         ) : (
           <div className="space-y-3">

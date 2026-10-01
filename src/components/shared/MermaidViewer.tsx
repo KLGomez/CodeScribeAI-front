@@ -57,7 +57,7 @@ export function MermaidViewer({ chart }: MermaidViewerProps) {
 
   return (
     <div
-      className="my-4 p-6 bg-white border border-slate-200 rounded-xl overflow-x-auto flex justify-center shadow-2xs w-full"
+      className="my-4 p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-x-auto flex justify-center shadow-2xs w-full transition-colors"
       dangerouslySetInnerHTML={{ __html: svg }}
     />
   )

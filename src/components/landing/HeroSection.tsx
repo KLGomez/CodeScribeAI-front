@@ -1,3 +1,5 @@
+import { ThemeToggle } from '../shared/ThemeToggle'
+
 export interface HeroSectionProps {
   onGithubLogin?: () => void
   onDemoAccess?: () => void
@@ -20,12 +22,17 @@ export function HeroSection({
   }
 
   return (
-    <section className="relative min-h-screen bg-slate-50 flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 py-20 overflow-hidden selection:bg-emerald-500 selection:text-white">
-      {/* Patrón SVG decorativo de cuadrícula fina y gradientes de profundidad */}
+    <section className="relative min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 py-20 overflow-hidden selection:bg-emerald-500 selection:text-white transition-colors duration-200">
+      {/* Botón flotante para alternar tema */}
+      <div className="absolute top-6 right-6 z-20">
+        <ThemeToggle />
+      </div>
+
+      {/* Patrón SVG decorativo de cuadrícula fina y gradientes de profundidad adaptables */}
       <div className="absolute inset-0 pointer-events-none -z-10 overflow-hidden">
         {/* SVG Grid Pattern */}
         <svg
-          className="absolute inset-0 h-full w-full stroke-slate-900/[0.04] [mask-image:radial-gradient(100%_100%_at_top_center,white,transparent)]"
+          className="absolute inset-0 h-full w-full stroke-slate-900/[0.04] dark:stroke-white/[0.03] [mask-image:radial-gradient(100%_100%_at_top_center,white,transparent)]"
           aria-hidden="true"
         >
           <defs>
@@ -43,27 +50,27 @@ export function HeroSection({
           <rect width="100%" height="100%" strokeWidth={0} fill="url(#hero-grid-pattern)" />
         </svg>
 
-        {/* Gradiente radial superior suave para aura luminosa */}
+        {/* Gradiente radial superior suave */}
         <div
-          className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[380px] bg-gradient-to-tr from-emerald-100/50 via-teal-100/30 to-transparent blur-3xl rounded-full"
+          className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[380px] bg-gradient-to-tr from-emerald-100/50 via-teal-100/30 to-transparent dark:from-emerald-950/30 dark:via-teal-950/20 blur-3xl rounded-full"
           aria-hidden="true"
         />
       </div>
 
       <div className="max-w-4xl mx-auto text-center flex flex-col items-center">
         {/* Pill Badge superior SaaS */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-slate-200/90 shadow-xs mb-8 transition-colors hover:border-slate-300">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs mb-8 transition-colors hover:border-slate-300 dark:hover:border-slate-700">
           <span className="flex h-2 w-2 relative">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
           </span>
-          <span className="text-xs font-medium text-slate-700 tracking-wide">
+          <span className="text-xs font-medium text-slate-700 dark:text-slate-300 tracking-wide">
             Potenciado por Google Gemini 2.0 &amp; Modelos Flash
           </span>
         </div>
 
         {/* Título Principal */}
-        <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-slate-900 mb-6 leading-[1.12]">
+        <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-6 leading-[1.12]">
           Code
           <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-500 to-teal-400">
             Scribe AI
@@ -71,7 +78,7 @@ export function HeroSection({
         </h1>
 
         {/* Bajada / Subtítulo descriptivo */}
-        <p className="text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed mb-10">
+        <p className="text-lg sm:text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed mb-10">
           Genera documentación técnica profesional, diagramas interactivos de arquitectura
           y análisis de módulos de tus repositorios de GitHub en segundos.
         </p>
@@ -82,7 +89,7 @@ export function HeroSection({
           <button
             onClick={handleGithubClick}
             type="button"
-            className="group relative inline-flex items-center justify-center gap-3 w-full sm:w-auto px-7 py-3.5 bg-slate-900 text-white font-medium rounded-xl text-base transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-900/20 active:translate-y-0 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2 focus:ring-offset-slate-50 cursor-pointer"
+            className="group relative inline-flex items-center justify-center gap-3 w-full sm:w-auto px-7 py-3.5 bg-slate-900 hover:bg-slate-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-medium rounded-xl text-base transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-900/20 dark:hover:shadow-emerald-900/40 active:translate-y-0 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-slate-50 dark:focus:ring-offset-slate-950 cursor-pointer"
           >
             {/* SVG Icono GitHub */}
             <svg
@@ -100,12 +107,12 @@ export function HeroSection({
             onClick={onDemoAccess}
             disabled={loadingDemo}
             type="button"
-            className="group inline-flex items-center justify-center gap-2.5 w-full sm:w-auto px-7 py-3.5 bg-white text-slate-800 font-medium rounded-xl text-base border border-slate-200 transition-all duration-200 ease-out hover:border-slate-300 hover:text-slate-900 hover:-translate-y-0.5 hover:shadow-md hover:shadow-slate-200/50 active:translate-y-0 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
+            className="group inline-flex items-center justify-center gap-2.5 w-full sm:w-auto px-7 py-3.5 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 font-medium rounded-xl text-base border border-slate-200 dark:border-slate-800 transition-all duration-200 ease-out hover:border-slate-300 dark:hover:border-slate-700 hover:text-slate-900 dark:hover:text-white hover:-translate-y-0.5 hover:shadow-md hover:shadow-slate-200/50 dark:hover:shadow-slate-950/50 active:translate-y-0 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
           >
             {loadingDemo ? (
               <>
                 <svg
-                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-slate-600"
+                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-slate-600 dark:text-slate-400"
                   fill="none"
                   viewBox="0 0 24 24"
                 >
@@ -137,31 +144,31 @@ export function HeroSection({
         </div>
 
         {/* Leyenda aclaratoria inferior */}
-        <p className="mt-8 text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
+        <p className="mt-8 text-xs text-slate-500 dark:text-slate-500 max-w-md mx-auto leading-relaxed">
           Autentícate con tu cuenta de GitHub para analizar repositorios privados y públicos,
           o prueba el modo demostración interactivo al instante.
         </p>
 
         {/* Vista previa miniatura o Social Proof de Características */}
-        <div className="mt-16 pt-10 border-t border-slate-200/70 w-full grid grid-cols-1 sm:grid-cols-3 gap-6 text-left">
-          <div className="bg-white/60 backdrop-blur-xs p-4 rounded-xl border border-slate-200/70 shadow-xs">
-            <div className="text-emerald-600 text-lg mb-1">⚡ Instantáneo</div>
-            <h3 className="font-semibold text-slate-900 text-sm">Análisis de AST &amp; Código</h3>
-            <p className="text-xs text-slate-500 mt-1">
+        <div className="mt-16 pt-10 border-t border-slate-200/70 dark:border-slate-800 w-full grid grid-cols-1 sm:grid-cols-3 gap-6 text-left">
+          <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xs p-4 rounded-xl border border-slate-200/70 dark:border-slate-800 shadow-xs transition-colors">
+            <div className="text-emerald-600 dark:text-emerald-400 text-lg mb-1">⚡ Instantáneo</div>
+            <h3 className="font-semibold text-slate-900 dark:text-slate-100 text-sm">Análisis de AST &amp; Código</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
               Desglose automático de arquitectura, controladores y flujos de datos.
             </p>
           </div>
-          <div className="bg-white/60 backdrop-blur-xs p-4 rounded-xl border border-slate-200/70 shadow-xs">
-            <div className="text-teal-600 text-lg mb-1">📊 Diagramas</div>
-            <h3 className="font-semibold text-slate-900 text-sm">Mermaid Integrado</h3>
-            <p className="text-xs text-slate-500 mt-1">
+          <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xs p-4 rounded-xl border border-slate-200/70 dark:border-slate-800 shadow-xs transition-colors">
+            <div className="text-teal-600 dark:text-teal-400 text-lg mb-1">📊 Diagramas</div>
+            <h3 className="font-semibold text-slate-900 dark:text-slate-100 text-sm">Mermaid Integrado</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
               Visualización gráfica de secuencia, entidades y componentes del sistema.
             </p>
           </div>
-          <div className="bg-white/60 backdrop-blur-xs p-4 rounded-xl border border-slate-200/70 shadow-xs">
-            <div className="text-emerald-600 text-lg mb-1">📄 Exportación</div>
-            <h3 className="font-semibold text-slate-900 text-sm">Listo para Producción</h3>
-            <p className="text-xs text-slate-500 mt-1">
+          <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xs p-4 rounded-xl border border-slate-200/70 dark:border-slate-800 shadow-xs transition-colors">
+            <div className="text-emerald-600 dark:text-emerald-400 text-lg mb-1">📄 Exportación</div>
+            <h3 className="font-semibold text-slate-900 dark:text-slate-100 text-sm">Listo para Producción</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
               Copia como Markdown estándar o exporta directamente en formato PDF imprimible.
             </p>
           </div>

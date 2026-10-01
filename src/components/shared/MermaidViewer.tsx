@@ -3,16 +3,17 @@ import mermaid from 'mermaid'
 
 mermaid.initialize({
   startOnLoad: false,
-  theme: 'dark',
+  theme: 'neutral',
   securityLevel: 'loose',
   themeVariables: {
-    primaryColor: '#16a34a',
-    primaryTextColor: '#ffffff',
-    primaryBorderColor: '#22c55e',
-    lineColor: '#4ade80',
-    secondaryColor: '#1f2937',
-    tertiaryColor: '#111827',
-    background: '#030712',
+    primaryColor: '#ecfdf5',
+    primaryTextColor: '#0f172a',
+    primaryBorderColor: '#10b981',
+    lineColor: '#059669',
+    secondaryColor: '#f8fafc',
+    tertiaryColor: '#ffffff',
+    background: '#ffffff',
+    fontFamily: 'ui-sans-serif, system-ui, -apple-system, sans-serif',
   },
 })
 
@@ -48,7 +49,7 @@ export function MermaidViewer({ chart }: MermaidViewerProps) {
 
   if (error || !svg) {
     return (
-      <pre className="p-4 bg-gray-900 border border-gray-800 rounded-lg text-xs font-mono text-gray-400 overflow-x-auto">
+      <pre className="p-4 bg-slate-100 border border-slate-200 rounded-xl text-xs font-mono text-slate-700 overflow-x-auto">
         <code>{chart}</code>
       </pre>
     )
@@ -56,7 +57,7 @@ export function MermaidViewer({ chart }: MermaidViewerProps) {
 
   return (
     <div
-      className="my-6 p-6 bg-gray-900/70 border border-gray-800 rounded-xl overflow-x-auto flex justify-center shadow-lg"
+      className="my-4 p-6 bg-white border border-slate-200 rounded-xl overflow-x-auto flex justify-center shadow-2xs w-full"
       dangerouslySetInnerHTML={{ __html: svg }}
     />
   )

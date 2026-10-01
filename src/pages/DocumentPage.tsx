@@ -57,12 +57,11 @@ export function RealtimeMetrics() {
     return () => clearInterval(timer);
   }, []);
 
-  return (
-    <div className="p-4 bg-slate-900 text-white rounded-xl border border-slate-800">
-      <h3 className="font-bold text-emerald-400">Métricas en Vivo</h3>
+    <div className="p-4 bg-slate-50 text-slate-800 rounded-xl border border-slate-200">
+      <h3 className="font-bold text-emerald-600">Métricas en Vivo</h3>
       <div className="flex gap-2 mt-2">
         {data.map((val, idx) => (
-          <span key={idx} className="bg-slate-800 px-2.5 py-1 rounded text-xs font-mono">
+          <span key={idx} className="bg-white border border-slate-200 px-2.5 py-1 rounded text-xs font-mono text-slate-700 shadow-2xs">
             {val}
           </span>
         ))}

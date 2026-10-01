@@ -46,7 +46,7 @@ function parseMarkdownToSections(rawMarkdown: string): SectionBlock[] {
         sectionIndex++
       }
 
-      currentTitle = line.replace(/^##\s+/, '').trim()
+      currentTitle = cleanSectionTitle(line.replace(/^##\s+/, '').trim())
       currentLines = []
     } else {
       currentLines.push(line)
@@ -77,8 +77,12 @@ function parseMarkdownToSections(rawMarkdown: string): SectionBlock[] {
   return sections
 }
 
+function cleanSectionTitle(rawTitle: string): string {
+  return rawTitle.replace(/`([^`]+)`/g, '$1').trim()
+}
+
 /**
- * Componente interno para renderizar bloques de código con botón de copiado
+ * Componente interno para renderizar bloques de código luminosos y modernos
  */
 function CodeBlock({
   language,
@@ -96,20 +100,37 @@ function CodeBlock({
   }
 
   return (
-    <div className="my-4 rounded-xl overflow-hidden border border-slate-800 bg-slate-900 shadow-md">
-      <div className="flex items-center justify-between px-4 py-2 bg-slate-950/80 border-b border-slate-800 text-xs text-slate-400">
-        <span className="font-mono uppercase tracking-wider text-slate-300">
-          {language || 'code'}
-        </span>
+    <div className="my-5 rounded-xl overflow-hidden border border-slate-200 bg-slate-50 shadow-2xs">
+      <div className="flex items-center justify-between px-4 py-2.5 bg-slate-100/80 border-b border-slate-200 text-xs">
+        <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-1.5" aria-hidden="true">
+            <span className="w-2.5 h-2.5 rounded-full bg-slate-300/80" />
+            <span className="w-2.5 h-2.5 rounded-full bg-slate-300/80" />
+            <span className="w-2.5 h-2.5 rounded-full bg-slate-300/80" />
+          </div>
+          <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-slate-600 bg-white px-2 py-0.5 rounded border border-slate-200 shadow-3xs">
+            {language || 'código'}
+          </span>
+        </div>
         <button
           onClick={handleCopy}
           type="button"
-          className="hover:text-white transition-colors cursor-pointer text-xs flex items-center gap-1.5 px-2 py-1 rounded hover:bg-slate-800"
+          className="text-xs font-medium text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 px-2.5 py-1 rounded-lg shadow-3xs transition-all cursor-pointer flex items-center gap-1.5"
         >
-          {copied ? '✓ Copiado' : 'Copiar código'}
+          {copied ? (
+            <>
+              <span className="text-emerald-600 font-bold">✓</span>
+              <span className="text-emerald-700 font-semibold">Copiado</span>
+            </>
+          ) : (
+            <>
+              <span className="text-slate-400">📋</span>
+              <span>Copiar código</span>
+            </>
+          )}
         </button>
       </div>
-      <pre className="p-4 overflow-x-auto text-sm font-mono text-slate-200 leading-relaxed">
+      <pre className="p-4 sm:p-5 overflow-x-auto text-[13px] sm:text-sm font-mono text-slate-800 bg-slate-50/60 leading-relaxed selection:bg-emerald-100 selection:text-slate-900">
         <code>{value}</code>
       </pre>
     </div>

@@ -8,6 +8,8 @@ import { DocumentPage } from '../pages/DocumentPage'
 import { DemoPage } from '../pages/DemoPage'
 import { NotionCallbackPage } from '../pages/NotionCallbackPage'
 
+import { AppLayout } from '../components/layout/AppLayout'
+
 export function AppRouter() {
   return (
     <BrowserRouter>
@@ -18,9 +20,11 @@ export function AppRouter() {
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
         <Route path="/auth/notion/callback" element={<NotionCallbackPage />} />
         <Route element={<ProtectedRoute />}>
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/analyze" element={<AnalyzePage />} />
-          <Route path="/documentation/:id" element={<DocumentPage />} />
+          <Route element={<AppLayout />}>
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/analyze" element={<AnalyzePage />} />
+            <Route path="/documentation/:id" element={<DocumentPage />} />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>

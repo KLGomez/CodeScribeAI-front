@@ -9,30 +9,21 @@ export function LandingPage() {
   const { setAuth } = useAuthStore()
   const [loadingDemo, setLoadingDemo] = useState(false)
 
-  const handleDemoAccess = async () => {
-    setLoadingDemo(true)
-    try {
-      const res = await api.post('/auth/demo')
-      setAuth(res.data.user, res.data.token)
-      navigate('/demo')
-    } catch {
-      // Fallback local si el backend está en proceso de inicio o modo offline
-      setAuth(
-        {
-          id: '66faef1234567890abcdef01',
-          username: 'desarrollador-demo',
-          displayName: 'Usuario de Prueba',
-          avatarUrl: 'https://avatars.githubusercontent.com/u/9919?s=200&v=4',
-          email: 'demo@codescribe.local',
-          plan: 'pro',
-          analysisCount: 3,
-        },
-        'demo-jwt-token-testing-codescribe',
-      )
-      navigate('/demo')
-    } finally {
-      setLoadingDemo(false)
-    }
+  const handleDemoAccess = () => {
+    // Modo Demo autónomo en frontend con demoData.ts para máxima velocidad y privacidad
+    setAuth(
+      {
+        id: 'demo-guest',
+        username: 'desarrollador-demo',
+        displayName: 'Visitante Demo',
+        avatarUrl: 'https://avatars.githubusercontent.com/u/9919?s=200&v=4',
+        email: 'demo@codescribe.local',
+        plan: 'pro',
+        analysisCount: 0,
+      },
+      'demo-jwt-token-testing-codescribe',
+    )
+    navigate('/demo')
   }
 
   return (

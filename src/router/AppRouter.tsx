@@ -5,12 +5,15 @@ import { AuthCallbackPage } from '../pages/AuthCallbackPage'
 import { DashboardPage } from '../pages/DashboardPage'
 import { AnalyzePage } from '../pages/AnalyzePage'
 import { DocumentPage } from '../pages/DocumentPage'
+import { DemoPage } from '../pages/DemoPage'
 
 export function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/demo" element={<DemoPage />} />
+        <Route path="/documentation/demo" element={<DemoPage />} />
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<DashboardPage />} />

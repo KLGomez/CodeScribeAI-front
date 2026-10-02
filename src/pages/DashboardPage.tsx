@@ -1,5 +1,6 @@
+import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '../features/auth/store/authStore'
 import { useJobStore } from '../features/jobs/store/jobStore'
 import { useJobSSE } from '../features/jobs/hooks/useJobSSE'
@@ -10,6 +11,8 @@ import { ThemeToggle } from '../components/shared/ThemeToggle'
 export function DashboardPage() {
   const { user, logout } = useAuthStore()
   const { activeJobId, jobs } = useJobStore()
+  const queryClient = useQueryClient()
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   // Suscribirse a eventos SSE para el trabajo activo
   useJobSSE(activeJobId)
@@ -18,6 +21,38 @@ export function DashboardPage() {
     queryKey: ['documentation'],
     queryFn: docApi.getAll,
   })
+
+  // Mutación para eliminación física de documentación con invalidación de caché
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => docApi.delete(id),
+    onSuccess: () => {
+      // Refresca la lista automáticamente
+      queryClient.invalidateQueries({ queryKey: ['documentation'] })
+      setDeletingId(null)
+    },
+    onError: (error: any) => {
+      setDeletingId(null)
+      const message =
+        error?.response?.data?.message ||
+        'No se pudo eliminar la documentación. Verifica tus permisos.'
+      alert(`Error: ${message}`)
+    },
+  })
+
+  const handleDelete = (e: React.MouseEvent, docId: string) => {
+    // Evitar que el clic active la navegación del enlace de la tarjeta
+    e.preventDefault()
+    e.stopPropagation()
+
+    const confirmed = window.confirm(
+      '¿Estás seguro de que deseas eliminar esta documentación? Esta acción es permanente y no se puede deshacer.',
+    )
+
+    if (confirmed) {
+      setDeletingId(docId)
+      deleteMutation.mutate(docId)
+    }
+  }
 
   const activeJob = activeJobId ? jobs[activeJobId] : null
 
@@ -136,7 +171,7 @@ export function DashboardPage() {
               Mis Documentaciones
             </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-              Repositorios analizados y documentación técnica lista para consultar o exportar.
+              Repositorios analizados y documentación técnica lista para consultar, exportar o gestionar.
             </p>
           </div>
 
@@ -184,49 +219,79 @@ export function DashboardPage() {
             </div>
           </div>
         ) : (
-          /* Lista de Tarjetas de Documentación con Modo Oscuro */
+          /* Lista de Tarjetas de Documentación */
           <div className="space-y-3">
             {docs.map((doc) => {
               const repoName = doc.repoUrl.replace('https://github.com/', '')
+              const isDeletingThis = deletingId === doc._id
+
               return (
-                <Link
+                <div
                   key={doc._id}
-                  to={`/documentation/${doc._id}`}
-                  className="group block bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 hover:bg-emerald-50/20 dark:hover:bg-emerald-500/[0.03] transition-all duration-200 ease-out hover:-translate-y-0.5"
+                  className="group relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 hover:bg-emerald-50/20 dark:hover:bg-emerald-500/[0.03] transition-all duration-200 ease-out hover:-translate-y-0.5 flex items-center justify-between gap-4"
                 >
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-4 min-w-0">
-                      {/* Icono de repositorio */}
-                      <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-500/10 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 flex items-center justify-center shrink-0 transition-colors">
-                        <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                          <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
-                        </svg>
-                      </div>
-
-                      {/* Información del Repo */}
-                      <div className="min-w-0">
-                        <h2 className="text-base font-semibold text-slate-900 dark:text-slate-50 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors truncate">
-                          {repoName}
-                        </h2>
-                        <div className="flex items-center gap-3 mt-1 text-xs text-slate-500 dark:text-slate-400">
-                          <span>{formatDate(doc.createdAt)}</span>
-                          {doc.tokensUsed ? (
-                            <>
-                              <span>•</span>
-                              <span>{doc.tokensUsed.toLocaleString()} tokens</span>
-                            </>
-                          ) : null}
-                        </div>
-                      </div>
+                  {/* Área clickeable principal que navega a la documentación */}
+                  <Link
+                    to={`/documentation/${doc._id}`}
+                    className="flex items-center gap-4 min-w-0 flex-1 focus:outline-none"
+                  >
+                    {/* Icono de repositorio */}
+                    <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-500/10 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 flex items-center justify-center shrink-0 transition-colors">
+                      <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                        <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
+                      </svg>
                     </div>
 
-                    {/* Botón / Indicador de acción */}
-                    <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 dark:text-slate-500 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors shrink-0">
-                      <span className="hidden sm:inline">Ver documentación</span>
+                    {/* Información del Repo */}
+                    <div className="min-w-0 flex-1">
+                      <h2 className="text-base font-semibold text-slate-900 dark:text-slate-50 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors truncate">
+                        {repoName}
+                      </h2>
+                      <div className="flex items-center gap-3 mt-1 text-xs text-slate-500 dark:text-slate-400">
+                        <span>{formatDate(doc.createdAt)}</span>
+                        {doc.tokensUsed ? (
+                          <>
+                            <span>•</span>
+                            <span>{doc.tokensUsed.toLocaleString()} tokens</span>
+                          </>
+                        ) : null}
+                      </div>
+                    </div>
+                  </Link>
+
+                  {/* Acciones de la Tarjeta: Ver Documentación + Botón de Eliminar */}
+                  <div className="flex items-center gap-3 shrink-0">
+                    <Link
+                      to={`/documentation/${doc._id}`}
+                      className="hidden sm:flex items-center gap-1.5 text-xs font-semibold text-slate-400 dark:text-slate-500 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors"
+                    >
+                      <span>Ver documentación</span>
                       <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
-                    </div>
+                    </Link>
+
+                    {/* Botón de Eliminación Física con confirmación nativa */}
+                    <button
+                      type="button"
+                      onClick={(e) => handleDelete(e, doc._id)}
+                      disabled={isDeletingThis}
+                      title="Eliminar documentación permanentemente"
+                      aria-label={`Eliminar documentación de ${repoName}`}
+                      className="p-2 rounded-xl text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-transparent hover:border-rose-200 dark:hover:border-rose-900/60 transition-all duration-150 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isDeletingThis ? (
+                        <div className="w-4 h-4 border-2 border-rose-500 border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
+                      )}
+                    </button>
                   </div>
-                </Link>
+                </div>
               )
             })}
           </div>

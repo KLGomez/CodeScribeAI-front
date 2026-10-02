@@ -7,6 +7,7 @@ import { useJobSSE } from '../features/jobs/hooks/useJobSSE'
 import { docApi } from '../features/documentation/api/docApi'
 import { formatDate } from '../lib/utils'
 import { ThemeToggle } from '../components/shared/ThemeToggle'
+import { NotionSettingsCard } from '../components/NotionSettingsCard'
 
 export function DashboardPage() {
   const { user, logout } = useAuthStore()
@@ -296,6 +297,19 @@ export function DashboardPage() {
             })}
           </div>
         )}
+
+        {/* Sección de Integraciones de Workspace */}
+        <section className="mt-12 pt-8 border-t border-slate-200/80 dark:border-slate-800/80">
+          <div className="mb-4">
+            <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+              Integraciones de Espacios de Trabajo
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              Conecta tus herramientas favoritas para exportar y sincronizar documentación técnica automáticamente.
+            </p>
+          </div>
+          <NotionSettingsCard />
+        </section>
       </main>
     </div>
   )

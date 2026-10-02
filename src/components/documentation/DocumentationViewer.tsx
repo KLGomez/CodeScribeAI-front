@@ -4,6 +4,8 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { MermaidViewer } from '../shared/MermaidViewer'
 import { ThemeToggle } from '../shared/ThemeToggle'
+import { NotionLogoIcon } from '../integrations/NotionSettingsCard'
+import { NotionExportModal } from './NotionExportModal'
 import type { Documentation } from '../../types/doc.types'
 
 export interface DocumentationViewerProps {
@@ -307,6 +309,7 @@ export function DocumentationViewer({
   onBackUrl = '/dashboard',
 }: DocumentationViewerProps) {
   const [copiedAll, setCopiedAll] = useState(false)
+  const [isNotionModalOpen, setIsNotionModalOpen] = useState(false)
 
   const sections = useMemo(() => {
     return parseMarkdownToSections(doc.content)
@@ -369,6 +372,16 @@ export function DocumentationViewer({
             </button>
 
             <button
+              onClick={() => setIsNotionModalOpen(true)}
+              type="button"
+              title="Exportar documentación a bloques nativos de Notion"
+              className="text-xs font-medium text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 px-3.5 py-2 rounded-xl shadow-2xs transition-all hover:-translate-y-0.5 active:translate-y-0 cursor-pointer flex items-center gap-1.5"
+            >
+              <NotionLogoIcon className="w-3.5 h-3.5" />
+              <span>Exportar a Notion</span>
+            </button>
+
+            <button
               onClick={() => window.print()}
               type="button"
               className="text-xs font-medium text-white bg-slate-900 dark:bg-emerald-600 hover:bg-slate-800 dark:hover:bg-emerald-500 px-3.5 py-2 rounded-xl shadow-xs transition-all hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
@@ -417,6 +430,14 @@ export function DocumentationViewer({
           </div>
         </div>
       </main>
+
+      {/* Modal de Exportación a Notion */}
+      <NotionExportModal
+        isOpen={isNotionModalOpen}
+        onClose={() => setIsNotionModalOpen(false)}
+        documentTitle={repoCleanName ? `Documentación: ${repoCleanName}` : 'Documentación Técnica'}
+        markdownContent={doc.content}
+      />
     </div>
   )
 }

@@ -14,7 +14,7 @@ export function LandingPage() {
     try {
       const res = await api.post('/auth/demo')
       setAuth(res.data.user, res.data.token)
-      navigate('/dashboard')
+      navigate('/demo')
     } catch {
       // Fallback local si el backend está en proceso de inicio o modo offline
       setAuth(
@@ -29,7 +29,7 @@ export function LandingPage() {
         },
         'demo-jwt-token-testing-codescribe',
       )
-      navigate('/dashboard')
+      navigate('/demo')
     } finally {
       setLoadingDemo(false)
     }

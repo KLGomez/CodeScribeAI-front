@@ -1,13 +1,10 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { HeroSection } from '../components/landing/HeroSection'
 import { useAuthStore } from '../features/auth/store/authStore'
-import api from '../lib/axios'
 
 export function LandingPage() {
   const navigate = useNavigate()
   const { setAuth } = useAuthStore()
-  const [loadingDemo, setLoadingDemo] = useState(false)
 
   const handleDemoAccess = () => {
     // Modo Demo autónomo en frontend con demoData.ts para máxima velocidad y privacidad
@@ -29,7 +26,7 @@ export function LandingPage() {
   return (
     <HeroSection
       onDemoAccess={handleDemoAccess}
-      loadingDemo={loadingDemo}
+      loadingDemo={false}
     />
   )
 }

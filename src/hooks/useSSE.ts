@@ -13,9 +13,8 @@ const BASE_URL =
   'http://localhost:3001/api'
 
 /**
- * Generic Server-Sent Events hook.
- * Reads the JWT from localStorage and appends it as a query param
- * since EventSource doesn't support custom headers.
+ * Generic Server-Sent Events hook with stable callbacks and automatic reconnection.
+ * Reads JWT from localStorage for EventSource query param.
  */
 export function useSSE<T>({
   url,
@@ -24,6 +23,10 @@ export function useSSE<T>({
   enabled = true,
 }: UseSSEOptions<T>) {
   const esRef = useRef<EventSource | null>(null)
+  const onMessageRef = useRef(onMessage)
+  onMessageRef.current = onMessage
+  const onErrorRef = useRef(onError)
+  onErrorRef.current = onError
 
   const getToken = () => {
     try {
@@ -34,8 +37,17 @@ export function useSSE<T>({
     }
   }
 
-  const connect = useCallback(() => {
-    if (esRef.current) esRef.current.close()
+  const close = useCallback(() => {
+    if (esRef.current) {
+      esRef.current.close()
+      esRef.current = null
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!enabled || !url) return
+
+    close()
     const token = getToken()
     const qs = token ? `?token=${token}` : ''
     const es = new EventSource(`${BASE_URL}${url}${qs}`)
@@ -43,23 +55,27 @@ export function useSSE<T>({
 
     es.onmessage = (e) => {
       try {
-        onMessage(JSON.parse(e.data) as T)
+        const parsed = JSON.parse(e.data) as T
+        onMessageRef.current(parsed)
       } catch {
         /* skip malformed frames */
       }
     }
 
-    es.onerror = () => {
-      onError?.()
-      es.close()
+    es.onerror = (e) => {
+      if (es.readyState === EventSource.CLOSED) {
+        onErrorRef.current?.()
+      } else {
+        // EventSource will automatically attempt to reconnect
+        console.warn('[SSE] Connection issue, retrying...', e)
+      }
     }
-  }, [url, onMessage, onError])
 
-  useEffect(() => {
-    if (!enabled) return
-    connect()
-    return () => esRef.current?.close()
-  }, [enabled, connect])
+    return () => {
+      es.close()
+      esRef.current = null
+    }
+  }, [url, enabled, close])
 
-  return { close: () => esRef.current?.close() }
+  return { close }
 }

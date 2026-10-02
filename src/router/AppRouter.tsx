@@ -6,6 +6,7 @@ import { DashboardPage } from '../pages/DashboardPage'
 import { AnalyzePage } from '../pages/AnalyzePage'
 import { DocumentPage } from '../pages/DocumentPage'
 import { DemoPage } from '../pages/DemoPage'
+import { NotionCallbackPage } from '../pages/NotionCallbackPage'
 
 export function AppRouter() {
   return (
@@ -15,6 +16,7 @@ export function AppRouter() {
         <Route path="/demo" element={<DemoPage />} />
         <Route path="/documentation/demo" element={<DemoPage />} />
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
+        <Route path="/auth/notion/callback" element={<NotionCallbackPage />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/analyze" element={<AnalyzePage />} />

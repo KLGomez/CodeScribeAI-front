@@ -24,9 +24,12 @@ export function useSSE<T>({
 }: UseSSEOptions<T>) {
   const esRef = useRef<EventSource | null>(null)
   const onMessageRef = useRef(onMessage)
-  onMessageRef.current = onMessage
   const onErrorRef = useRef(onError)
-  onErrorRef.current = onError
+
+  useEffect(() => {
+    onMessageRef.current = onMessage
+    onErrorRef.current = onError
+  }, [onMessage, onError])
 
   const getToken = () => {
     try {

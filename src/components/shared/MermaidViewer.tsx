@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import mermaid from 'mermaid'
+import DOMPurify from 'dompurify'
 
 mermaid.initialize({
   startOnLoad: false,
   theme: 'neutral',
-  securityLevel: 'loose',
+  securityLevel: 'strict',
   themeVariables: {
     primaryColor: '#ecfdf5',
     primaryTextColor: '#0f172a',
@@ -33,7 +34,10 @@ export function MermaidViewer({ chart }: MermaidViewerProps) {
       .render(uniqueId, chart)
       .then(({ svg }) => {
         if (isMounted) {
-          setSvg(svg)
+          const sanitizedSvg = DOMPurify.sanitize(svg, {
+            USE_PROFILES: { svg: true, svgFilters: true },
+          })
+          setSvg(sanitizedSvg)
           setError(false)
         }
       })

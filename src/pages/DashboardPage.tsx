@@ -1,15 +1,14 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useAuthStore } from '../features/auth/store/authStore'
 import { useJobStore } from '../features/jobs/store/jobStore'
 import { useJobSSE } from '../features/jobs/hooks/useJobSSE'
 import { docApi } from '../features/documentation/api/docApi'
 import { formatDate } from '../lib/utils'
-import { ThemeToggle } from '../components/shared/ThemeToggle'
+import { NotionSettingsCard } from '../components/NotionSettingsCard'
+import { AccountSettingsCard } from '../components/AccountSettingsCard'
 
 export function DashboardPage() {
-  const { user, logout } = useAuthStore()
   const { activeJobId, jobs } = useJobStore()
   const queryClient = useQueryClient()
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -57,78 +56,8 @@ export function DashboardPage() {
   const activeJob = activeJobId ? jobs[activeJobId] : null
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 selection:bg-emerald-500 selection:text-white transition-colors duration-200">
-      {/* Patrón SVG decorativo de cuadrícula fina para profundidad visual adaptativo */}
-      <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
-        <svg
-          className="absolute inset-0 h-full w-full stroke-slate-900/[0.03] dark:stroke-white/[0.03] [mask-image:radial-gradient(100%_100%_at_top_center,white,transparent)]"
-          aria-hidden="true"
-        >
-          <defs>
-            <pattern
-              id="dashboard-grid-pattern"
-              width={32}
-              height={32}
-              patternUnits="userSpaceOnUse"
-              x="50%"
-              y={-1}
-            >
-              <path d="M.5 32V.5H32" fill="none" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" strokeWidth={0} fill="url(#dashboard-grid-pattern)" />
-        </svg>
-      </div>
-
-      {/* Header Superior Limpio con Modo Oscuro */}
-      <header className="sticky top-0 z-30 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800/80 px-6 py-4 transition-colors duration-200">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <Link to="/dashboard" className="flex items-center gap-2 font-extrabold text-xl tracking-tight text-slate-900 dark:text-white">
-            <span>Code</span>
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-500 to-teal-400">
-              Scribe AI
-            </span>
-          </Link>
-
-          <div className="flex items-center gap-3 sm:gap-4">
-            {/* Selector de Tema Visual (Light / Dark / System) */}
-            <ThemeToggle />
-
-            {/* Perfil del Usuario */}
-            <div className="flex items-center gap-2.5 bg-slate-100/80 dark:bg-slate-900/90 px-3 py-1.5 rounded-full border border-slate-200/60 dark:border-slate-800 transition-colors">
-              {user?.avatarUrl ? (
-                <img
-                  src={user.avatarUrl}
-                  alt={user.username}
-                  className="w-6 h-6 rounded-full ring-1 ring-slate-200 dark:ring-slate-700"
-                />
-              ) : (
-                <div className="w-6 h-6 rounded-full bg-slate-300 dark:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center text-xs font-bold">
-                  {user?.username?.charAt(0).toUpperCase() || 'U'}
-                </div>
-              )}
-              <span className="text-slate-800 dark:text-slate-200 text-xs font-semibold">{user?.username}</span>
-              {user?.plan && (
-                <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border border-transparent dark:border-emerald-800/60 px-1.5 py-0.5 rounded">
-                  {user.plan}
-                </span>
-              )}
-            </div>
-
-            <button
-              onClick={logout}
-              type="button"
-              className="text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors cursor-pointer"
-            >
-              Salir
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Contenido Principal */}
-      <main className="max-w-5xl mx-auto px-6 py-10">
-        {/* Banner de trabajo activo (SSE) */}
+    <div className="space-y-8">
+      {/* Banner de trabajo activo (SSE) */}
         {activeJob && (
           <div
             className={`mb-8 p-5 rounded-2xl border shadow-sm transition-all ${
@@ -296,7 +225,24 @@ export function DashboardPage() {
             })}
           </div>
         )}
-      </main>
-    </div>
-  )
-}
+
+        {/* Sección de Integraciones de Workspace */}
+        <section className="mt-12 pt-8 border-t border-slate-200/80 dark:border-slate-800/80">
+          <div className="mb-4">
+            <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+              Integraciones de Espacios de Trabajo
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              Conecta tus herramientas favoritas para exportar y sincronizar documentación técnica automáticamente.
+            </p>
+          </div>
+          <NotionSettingsCard />
+        </section>
+
+        {/* Zona de Peligro - Configuración de Cuenta */}
+        <section className="mt-8">
+          <AccountSettingsCard />
+        </section>
+      </div>
+    )
+  }

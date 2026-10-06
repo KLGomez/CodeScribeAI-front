@@ -1,11 +1,10 @@
-import { useIntegrationStore } from '../../store/useIntegrationStore'
+import { useEffect, useState } from 'react'
+import { useNotionStore } from '../../features/integrations/store/useNotionStore'
+import { notionApi } from '../../features/integrations/api/notionApi'
+import { useAuthStore } from '../../features/auth/store/authStore'
 
 export interface NotionSettingsCardProps {
   className?: string
-  /**
-   * URL de autorización OAuth de Notion.
-   * Si no se especifica, tomará la variable de entorno VITE_NOTION_AUTH_URL.
-   */
   authUrl?: string
 }
 
@@ -27,32 +26,55 @@ export function NotionLogoIcon({ className = 'w-6 h-6' }: { className?: string }
 
 /**
  * Tarjeta de Configuración de la Integración con Notion
- * Soporta estados conectado y desconectado con diseño claro/oscuro (SaaS luminoso).
+ * Conectada al backend real de CodeScribe AI.
  */
 export function NotionSettingsCard({ className = '', authUrl }: NotionSettingsCardProps) {
+  const { user } = useAuthStore()
   const {
     isNotionConnected,
     notionWorkspaceName,
     notionPages,
-    setNotionConnected,
+    checkStatus,
     disconnectNotion,
-  } = useIntegrationStore()
+    loading,
+  } = useNotionStore()
 
-  // Determinación de la URL de autorización OAuth
-  const resolvedAuthUrl =
-    authUrl ||
-    (import.meta.env?.VITE_NOTION_AUTH_URL as string | undefined) ||
-    'https://api.notion.com/v1/oauth/authorize?client_id=codescribe-notion-app&response_type=code&owner=user'
+  const [connecting, setConnecting] = useState(false)
+  const isDemo = Boolean(user?.isDemo)
 
-  const handleConnectRedirect = () => {
-    if (resolvedAuthUrl) {
-      window.location.href = resolvedAuthUrl
+  useEffect(() => {
+    if (!isDemo) {
+      checkStatus().catch(() => {})
+    }
+  }, [checkStatus, isDemo])
+
+  const handleConnect = async () => {
+    if (isDemo || connecting) return
+    try {
+      setConnecting(true)
+      const url = authUrl || (await notionApi.getAuthUrl())
+      if (url) {
+        window.location.href = url
+      }
+    } catch (err) {
+      console.error('[Notion] Error al obtener URL de autenticación:', err)
+      setConnecting(false)
+    }
+  }
+
+  const handleDisconnect = async () => {
+    try {
+      await disconnectNotion()
+    } catch (err) {
+      console.error('[Notion] Error al desconectar espacio:', err)
     }
   }
 
   return (
     <div
-      className={`bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-7 shadow-sm transition-all duration-200 ${className}`}
+      className={`bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-7 shadow-sm transition-all duration-200 ${className} ${
+        isDemo ? 'opacity-80' : ''
+      }`}
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
         {/* Lado izquierdo: Logo, Identidad y Descripción */}
@@ -67,7 +89,11 @@ export function NotionSettingsCard({ className = '', authUrl }: NotionSettingsCa
                 Notion
               </h3>
 
-              {isNotionConnected ? (
+              {isDemo ? (
+                <span className="inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200/60 dark:border-amber-800/60">
+                  No disponible en Demo
+                </span>
+              ) : isNotionConnected ? (
                 <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200/70 dark:border-emerald-800/60 shadow-3xs">
                   <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
@@ -82,7 +108,11 @@ export function NotionSettingsCard({ className = '', authUrl }: NotionSettingsCa
               )}
             </div>
 
-            {isNotionConnected ? (
+            {isDemo ? (
+              <p className="text-xs text-amber-700 dark:text-amber-400 max-w-md leading-relaxed">
+                La exportación a Notion no está disponible en modo demo para proteger la privacidad. Inicia sesión con GitHub para vincular tu espacio de trabajo.
+              </p>
+            ) : isNotionConnected ? (
               <div className="space-y-0.5">
                 <p className="text-xs text-slate-500 dark:text-slate-400">
                   Espacio vinculado:{' '}
@@ -108,30 +138,27 @@ export function NotionSettingsCard({ className = '', authUrl }: NotionSettingsCa
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
               <button
                 type="button"
-                onClick={handleConnectRedirect}
-                className="inline-flex items-center justify-center gap-2.5 bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-50 dark:hover:bg-slate-200 dark:text-slate-950 px-5 py-2.5 rounded-xl font-medium text-sm shadow-sm transition-all duration-150 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-900/20 dark:focus:ring-white/20"
+                onClick={handleConnect}
+                disabled={isDemo || connecting || loading}
+                title={isDemo ? 'La exportación a Notion no está disponible en modo demo' : 'Conectar cuenta de Notion mediante OAuth'}
+                className="inline-flex items-center justify-center gap-2.5 bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-50 dark:hover:bg-slate-200 dark:text-slate-950 px-5 py-2.5 rounded-xl font-medium text-sm shadow-sm transition-all duration-150 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-900/20 dark:focus:ring-white/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                 aria-label="Conectar cuenta de Notion mediante OAuth"
               >
-                <NotionLogoIcon className="w-4 h-4" />
-                <span>Conectar con Notion</span>
-              </button>
-
-              {/* Botón rápido para pruebas locales / demo en desarrollo */}
-              <button
-                type="button"
-                onClick={() => setNotionConnected(true, 'Engineering Team Workspace')}
-                title="Activar estado conectado para pruebas locales"
-                className="text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 underline underline-offset-2 px-2 py-1 text-center cursor-pointer transition-colors"
-              >
-                (Simular conexión)
+                {connecting ? (
+                  <div className="w-4 h-4 border-2 border-white dark:border-slate-900 border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <NotionLogoIcon className="w-4 h-4" />
+                )}
+                <span>{connecting ? 'Conectando...' : 'Conectar con Notion'}</span>
               </button>
             </div>
           ) : (
             <div className="flex items-center gap-2.5">
               <button
                 type="button"
-                onClick={disconnectNotion}
-                className="inline-flex items-center justify-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 bg-white dark:bg-slate-900 hover:bg-rose-50/70 dark:hover:bg-rose-950/30 border border-slate-200 dark:border-slate-800 hover:border-rose-200 dark:hover:border-rose-900/60 px-3.5 py-2 rounded-xl transition-all duration-150 cursor-pointer shadow-3xs"
+                onClick={handleDisconnect}
+                disabled={loading}
+                className="inline-flex items-center justify-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 bg-white dark:bg-slate-900 hover:bg-rose-50/70 dark:hover:bg-rose-950/30 border border-slate-200 dark:border-slate-800 hover:border-rose-200 dark:hover:border-rose-900/60 px-3.5 py-2 rounded-xl transition-all duration-150 cursor-pointer shadow-3xs disabled:opacity-50"
                 aria-label="Desconectar espacio de trabajo de Notion"
               >
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

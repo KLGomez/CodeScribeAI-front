@@ -1,76 +1,89 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { useIntegrationStore } from '../store/useIntegrationStore'
-import { NotionLogoIcon } from '../components/NotionSettingsCard'
+import { useNotionStore } from '../features/integrations/store/useNotionStore'
+import { notionApi } from '../features/integrations/api/notionApi'
+import { NotionLogoIcon } from '../components/integrations/NotionSettingsCard'
 
 type CallbackStatus = 'loading' | 'success' | 'error'
 
 export function NotionCallbackPage() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
-  const setNotionConnected = useIntegrationStore((state) => state.setNotionConnected)
+  const setNotionConnected = useNotionStore((state) => state.setNotionConnected)
 
-  const [status, setStatus] = useState<CallbackStatus>('loading')
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const initialError = searchParams.get('error')
+  const code = searchParams.get('code')
+  const state = searchParams.get('state')
+
+  const [status, setStatus] = useState<CallbackStatus>(() => {
+    if (initialError || !code) return 'error'
+    return 'loading'
+  })
+
+  const [errorMessage, setErrorMessage] = useState<string | null>(() => {
+    if (initialError) {
+      return initialError === 'access_denied'
+        ? 'Autorización cancelada por el usuario en Notion.'
+        : `Error devuelto por Notion: ${initialError}`
+    }
+    if (!code) {
+      return 'No se encontró ningún código de autorización en la URL.'
+    }
+    return null
+  })
 
   useEffect(() => {
-    const code = searchParams.get('code')
-    const error = searchParams.get('error')
+    let isCancelled = false
 
-    // 1. Manejo de error retornado por Notion (ej. usuario canceló o denegó acceso)
-    if (error) {
-      setStatus('error')
-      setErrorMessage(
-        error === 'access_denied'
-          ? 'Autorización cancelada por el usuario en Notion.'
-          : `Error devuelto por Notion: ${error}`,
-      )
-
+    if (initialError || !code) {
       const timer = setTimeout(() => {
-        navigate('/dashboard')
+        if (!isCancelled) navigate('/dashboard')
       }, 3000)
-
-      return () => clearTimeout(timer)
+      return () => {
+        isCancelled = true
+        clearTimeout(timer)
+      }
     }
 
-    // 2. Manejo exitoso con código de autorización
-    if (code) {
-      setStatus('loading')
-
-      // Simulación asíncrona del intercambio de token en el backend (2 segundos)
-      const timer = setTimeout(() => {
-        setNotionConnected(true, 'Mi Espacio de Trabajo')
+    // Call real backend OAuth callback exchange
+    notionApi
+      .submitCallback(code, state || '')
+      .then((data) => {
+        if (isCancelled) return
+        setNotionConnected(true, data.workspaceName)
         setStatus('success')
-        navigate('/dashboard')
-      }, 2000)
+        setTimeout(() => {
+          if (!isCancelled) navigate('/dashboard')
+        }, 1500)
+      })
+      .catch((err) => {
+        if (isCancelled) return
+        setStatus('error')
+        const msg =
+          err?.response?.data?.message ||
+          'Error al completar la vinculación con Notion. Por favor, reintenta.'
+        setErrorMessage(msg)
+        setTimeout(() => {
+          if (!isCancelled) navigate('/dashboard')
+        }, 3500)
+      })
 
-      return () => clearTimeout(timer)
+    return () => {
+      isCancelled = true
     }
-
-    // 3. Caso atípico: URL sin code ni error
-    setStatus('error')
-    setErrorMessage('No se encontró ningún código de autorización válido en la URL.')
-    const fallbackTimer = setTimeout(() => {
-      navigate('/dashboard')
-    }, 3000)
-
-    return () => clearTimeout(fallbackTimer)
-  }, [searchParams, navigate, setNotionConnected])
+  }, [searchParams, navigate, setNotionConnected, code, state, initialError])
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 flex items-center justify-center p-4 transition-colors duration-200">
       <div className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm p-8 text-center transition-all duration-200">
         {status === 'loading' && (
           <div className="flex flex-col items-center">
-            {/* Logo de Notion destacado */}
             <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-center mb-6 shadow-2xs">
               <NotionLogoIcon className="w-9 h-9" />
             </div>
 
-            {/* Spinner elegante color emerald-500 */}
             <div className="w-10 h-10 border-4 border-slate-200 dark:border-slate-800 border-t-emerald-500 rounded-full animate-spin mb-6" />
 
-            {/* Mensajes de carga */}
             <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
               Conectando tu espacio de trabajo...
             </h2>
@@ -122,7 +135,7 @@ export function NotionCallbackPage() {
               {errorMessage}
             </p>
             <p className="text-xs text-slate-400 dark:text-slate-500">
-              Serás redirigido al Dashboard automáticamente en 3 segundos...
+              Serás redirigido al Dashboard automáticamente en unos segundos...
             </p>
             <button
               type="button"

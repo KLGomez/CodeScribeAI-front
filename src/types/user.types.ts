@@ -6,4 +6,6 @@ export interface User {
   email?: string
   plan: 'free' | 'pro'
   analysisCount: number
+  isDemo?: boolean
+  expiresAt?: string
 }

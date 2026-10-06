@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#090d16"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="brand" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#14b8a6"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="950" cy="200" r="300" fill="#10b981" opacity="0.08" filter="blur(80px)"/>
+  
+  <g transform="translate(100, 160)">
+    <rect width="72" height="72" rx="20" fill="url(#brand)"/>
+    <path d="M26 48l8-24m8 8l8 8-8 8M22 40l-8-8 8-8" stroke="#ffffff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none" transform="translate(4, 4)"/>
+    
+    <text x="96" y="52" font-family="system-ui, -apple-system, sans-serif" font-size="44" font-weight="900" fill="#ffffff">
+      Code<tspan fill="url(#brand)">Scribe AI</tspan>
+    </text>
+    
+    <text x="0" y="150" font-family="system-ui, -apple-system, sans-serif" font-size="54" font-weight="800" fill="#f8fafc" letter-spacing="-0.03em">
+      Documentación Técnica de Software
+    </text>
+    <text x="0" y="215" font-family="system-ui, -apple-system, sans-serif" font-size="54" font-weight="800" fill="url(#brand)" letter-spacing="-0.03em">
+      con Inteligencia Artificial
+    </text>
+    
+    <text x="0" y="295" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="400" fill="#94a3b8">
+      Convierte repositorios de código en arquitecturas y diagramas interactivos en segundos.
+    </text>
+    <text x="0" y="335" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="500" fill="#64748b">
+      Sincronización con Notion · Diagramas Mermaid · Modelo Google Gemini 2.5
+    </text>
+  </g>
+</svg>

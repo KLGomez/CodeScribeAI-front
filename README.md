@@ -60,7 +60,7 @@ src/
 Crea un archivo `.env` en la raíz de `documentador-frontend`:
 
 ```env
-# URL base de la API del backend (acepta VITE_API_URL o VITE_API_BASE_URL)
+# URL base de la API del backend
 VITE_API_URL=http://localhost:3001/api
 ```
 
@@ -84,7 +84,12 @@ La aplicación iniciará en `http://localhost:5173`.
 npm run build
 ```
 
-### 4. Ejecutar Linter
+### 4. Ejecutar Pruebas
+```bash
+npm test
+```
+
+### 5. Ejecutar Linter
 ```bash
 npm run lint
 ```
@@ -93,12 +98,12 @@ npm run lint
 
 ## 🐳 Despliegue con Docker
 
-El frontend cuenta con un Dockerfile multi-stage optimizado que compila la SPA con Node y sirve los archivos estáticos a través de Nginx Alpine sin privilegios:
+El frontend cuenta con un Dockerfile multi-stage optimizado que compila la SPA con Node y sirve los archivos estáticos a través de Nginx Alpine sin privilegios (puerto 8080):
 
 ```bash
 # Construir la imagen
 docker build -t codescribe-frontend .
 
-# Ejecutar el contenedor
-docker run -d -p 80:80 --name codescribe-front codescribe-frontend
+# Ejecutar el contenedor (puerto 8080 interno)
+docker run -d -p 8080:8080 --name codescribe-front codescribe-frontend
 ```

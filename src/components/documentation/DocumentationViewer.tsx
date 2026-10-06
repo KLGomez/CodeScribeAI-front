@@ -501,6 +501,28 @@ export function DocumentationViewer({
                   <td className="px-4 py-3 border-b border-slate-800/60 text-slate-300 text-sm" {...props} />
                 ),
                 hr: () => <hr className="my-6 border-slate-800" />,
+                a: ({ href, children, ...props }: any) => {
+                  const isSafe = href?.startsWith('http://') || href?.startsWith('https://') || href?.startsWith('#')
+                  if (!isSafe) {
+                    return <span>{children}</span>
+                  }
+                  return (
+                    <a
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-emerald-400 hover:text-emerald-300 underline underline-offset-2 transition-colors"
+                      {...props}
+                    >
+                      {children}
+                    </a>
+                  )
+                },
+                img: () => (
+                  <span className="inline-block p-2 text-xs italic text-slate-500 bg-slate-900 rounded border border-slate-800">
+                    [Imagen Externa Omitida]
+                  </span>
+                ),
                 code: ({ inline, className, children, ...props }: any) => {
                   const match = /language-(\w+)/.exec(className || '')
                   const lang = match ? match[1] : ''
@@ -539,6 +561,7 @@ export function DocumentationViewer({
       <NotionExportModal
         isOpen={isNotionModalOpen}
         onClose={() => setIsNotionModalOpen(false)}
+        documentationId={doc._id}
         documentTitle={
           repoCleanName
             ? `Documentación: ${repoCleanName}${activeSectionId !== 'all' ? ` - ${activeTitle}` : ''}`

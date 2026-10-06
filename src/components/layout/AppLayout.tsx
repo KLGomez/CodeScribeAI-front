@@ -241,10 +241,46 @@ export function AppLayout() {
         </div>
       </header>
 
+      {/* Banner de Modo Demo */}
+      {user?.isDemo && (
+        <div className="bg-amber-500/10 dark:bg-amber-500/15 border-b border-amber-500/30 px-4 py-2.5 text-xs text-amber-800 dark:text-amber-200 text-center flex items-center justify-center gap-2">
+          <span>💡</span>
+          <span>
+            <strong>Modo Demo Activo:</strong> Tu sesión es temporal (24 horas) y los datos se eliminarán automáticamente.
+          </span>
+          <Link
+            to="/privacidad"
+            className="underline hover:text-amber-950 dark:hover:text-amber-100 font-semibold ml-1 transition-colors"
+          >
+            Saber más
+          </Link>
+        </div>
+      )}
+
       {/* Contenido Principal con Outlet */}
       <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 flex-1">
         <Outlet />
       </main>
+
+      {/* Footer Mínimo con Enlace a Privacidad */}
+      <footer className="border-t border-slate-200/60 dark:border-slate-800/80 py-4 px-4 text-center text-xs text-slate-400 dark:text-slate-500">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+          <span>CodeScribe AI © 2026</span>
+          <div className="flex items-center gap-4">
+            <Link to="/privacidad" className="hover:text-slate-600 dark:hover:text-slate-300 underline underline-offset-2 transition-colors">
+              Privacidad y Seguridad
+            </Link>
+            <a
+              href="https://github.com/KLGomez/CodeScribeAI-front"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-slate-600 dark:hover:text-slate-300 underline underline-offset-2 transition-colors"
+            >
+              GitHub
+            </a>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }

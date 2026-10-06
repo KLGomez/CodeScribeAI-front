@@ -5,10 +5,29 @@ import { useJobStore } from '../features/jobs/store/jobStore'
 import { useJobSSE } from '../features/jobs/hooks/useJobSSE'
 import { docApi } from '../features/documentation/api/docApi'
 import { formatDate } from '../lib/utils'
-import { NotionSettingsCard } from '../components/NotionSettingsCard'
+import { NotionSettingsCard } from '../components/integrations/NotionSettingsCard'
 import { AccountSettingsCard } from '../components/AccountSettingsCard'
+import { useAuthStore } from '../features/auth/store/authStore'
+
+function formatStage(stage?: string): string {
+  switch (stage) {
+    case 'conectando':
+      return 'Conectando con el repositorio...'
+    case 'leyendo_repositorio':
+      return 'Leyendo árbol de archivos...'
+    case 'generando_documentacion':
+      return 'Generando arquitectura con Gemini...'
+    case 'guardando':
+      return 'Guardando documentación...'
+    case 'completado':
+      return 'Análisis completado'
+    default:
+      return 'Analizando repositorio con IA...'
+  }
+}
 
 export function DashboardPage() {
+  const { user } = useAuthStore()
   const { activeJobId, jobs } = useJobStore()
   const queryClient = useQueryClient()
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -68,37 +87,64 @@ export function DashboardPage() {
                   : 'border-amber-200 dark:border-amber-800/60 bg-amber-50/70 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200'
             }`}
           >
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 {activeJob.status === 'processing' || activeJob.status === 'queued' ? (
                   <div className="w-4 h-4 border-2 border-amber-500 dark:border-amber-400 border-t-transparent rounded-full animate-spin" />
                 ) : null}
-                <p className="text-sm font-semibold">
-                  {activeJob.status === 'queued' && '⏳ Análisis en cola...'}
-                  {activeJob.status === 'processing' && '🔄 Analizando repositorio con IA...'}
-                  {activeJob.status === 'done' && '✅ Documentación generada con éxito'}
-                  {activeJob.status === 'error' && `❌ Error: ${activeJob.errorMessage}`}
-                </p>
+                <div>
+                  <p className="text-sm font-semibold">
+                    {activeJob.status === 'queued' && '⏳ Análisis en cola...'}
+                    {activeJob.status === 'processing' && `🔄 ${formatStage(activeJob.stage)}`}
+                    {activeJob.status === 'done' && '✅ Documentación generada con éxito'}
+                    {activeJob.status === 'error' && `❌ Error: ${activeJob.errorMessage || 'Fallo en el análisis'}`}
+                  </p>
+                  {activeJob.status === 'processing' && (
+                    <p className="text-xs text-amber-700 dark:text-amber-300 mt-0.5">
+                      Progreso: {activeJob.progress}%
+                    </p>
+                  )}
+                </div>
               </div>
 
               {activeJob.status === 'done' && activeJob.documentationId && (
                 <Link
                   to={`/documentation/${activeJob.documentationId}`}
-                  className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white font-medium text-xs px-3.5 py-1.5 rounded-lg shadow-xs transition-colors"
+                  className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white font-medium text-xs px-3.5 py-1.5 rounded-lg shadow-xs transition-colors shrink-0"
                 >
                   Ver documentación →
                 </Link>
               )}
             </div>
+
+            {activeJob.status === 'processing' && (
+              <div className="w-full bg-amber-200/60 dark:bg-amber-900/40 h-1.5 rounded-full mt-3 overflow-hidden">
+                <div
+                  className="bg-amber-500 dark:bg-amber-400 h-1.5 rounded-full transition-all duration-300"
+                  style={{ width: `${Math.max(activeJob.progress, 5)}%` }}
+                />
+              </div>
+            )}
           </div>
         )}
 
-        {/* Encabezado de la Sección */}
+        {/* Encabezado de la Sección y Contador de Cuota */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50">
-              Mis Documentaciones
-            </h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50">
+                Mis Documentaciones
+              </h1>
+              {user?.isDemo ? (
+                <span className="px-2.5 py-1 text-xs rounded-lg font-medium bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300/60 dark:border-amber-800">
+                  Modo Demo: {user.analysisCount || 0}/2 usados
+                </span>
+              ) : (
+                <span className="px-2.5 py-1 text-xs rounded-lg font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                  Plan {user?.plan === 'pro' ? 'Pro' : 'Free'}: {user?.analysisCount || 0} análisis
+                </span>
+              )}
+            </div>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
               Repositorios analizados y documentación técnica lista para consultar, exportar o gestionar.
             </p>

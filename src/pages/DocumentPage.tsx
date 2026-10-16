@@ -206,7 +206,7 @@ export function DocumentPage() {
             </span>
 
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-950/60 border border-emerald-800/80 text-emerald-300 font-medium">
-              Gemini 2.0 Flash
+              Gemini 2.5 Flash
             </span>
           </div>
         </div>

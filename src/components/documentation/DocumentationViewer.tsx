@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { MermaidViewer } from '../shared/MermaidViewer'
@@ -21,6 +21,29 @@ interface SectionBlock {
 
 function cleanSectionTitle(rawTitle: string): string {
   return rawTitle.replace(/`([^`]+)`/g, '$1').trim()
+}
+
+/**
+ * Desenuelve contenido si viene como representación textual de lista/objeto Python.
+ */
+export function unwrapRawMarkdown(raw: string): string {
+  if (!raw) return ''
+  const s = raw.trim()
+  if ((s.startsWith("[{'type':") || s.startsWith('[{"type":')) && (s.includes("'text':") || s.includes('"text":'))) {
+    try {
+      const textMatch = s.match(/['"]text['"]\s*:\s*(['"])([\s\S]*?)\1\s*(?:,\s*['"]extras['"]|}|,)/)
+      if (textMatch && textMatch[2]) {
+        return textMatch[2]
+          .replace(/\\n/g, '\n')
+          .replace(/\\"/g, '"')
+          .replace(/\\'/g, "'")
+          .replace(/\\\\/g, '\\')
+      }
+    } catch {
+      // ignore
+    }
+  }
+  return raw
 }
 
 /**
@@ -168,9 +191,13 @@ export function DocumentationViewer({
   const [copied, setCopied] = useState(false)
   const [isNotionModalOpen, setIsNotionModalOpen] = useState(false)
 
-  const sections = useMemo(() => {
-    return parseMarkdownToSections(doc.content)
+  const cleanContent = useMemo(() => {
+    return unwrapRawMarkdown(doc.content)
   }, [doc.content])
+
+  const sections = useMemo(() => {
+    return parseMarkdownToSections(cleanContent)
+  }, [cleanContent])
 
   const repoCleanName = useMemo(() => {
     if (!doc.repoUrl) return ''
@@ -189,7 +216,7 @@ export function DocumentationViewer({
     if (activeSectionId === 'all') {
       return {
         activeTitle: 'Documento Completo',
-        activeContent: doc.content,
+        activeContent: cleanContent,
       }
     }
     const current = sections.find((s) => s.id === activeSectionId)
@@ -201,9 +228,9 @@ export function DocumentationViewer({
     }
     return {
       activeTitle: 'Documento Completo',
-      activeContent: doc.content,
+      activeContent: cleanContent,
     }
-  }, [activeSectionId, sections, doc.content])
+  }, [activeSectionId, sections, cleanContent])
 
   // Copiar Markdown al portapapeles
   const handleCopyMarkdown = () => {
@@ -523,31 +550,46 @@ export function DocumentationViewer({
                     [Imagen Externa Omitida]
                   </span>
                 ),
-                code: ({ inline, className, children, ...props }: any) => {
-                  const match = /language-(\w+)/.exec(className || '')
-                  const lang = match ? match[1] : ''
-                  const codeText = String(children).replace(/\n$/, '')
+                pre: ({ children }: any) => {
+                  if (React.isValidElement(children)) {
+                    const codeProps = (children.props || {}) as { className?: string; children?: React.ReactNode }
+                    const match = /language-(\w+)/.exec(codeProps.className || '')
+                    const lang = match ? match[1] : ''
 
-                  if (lang === 'mermaid') {
-                    return (
-                      <div className="my-6 p-4 bg-slate-900 border border-slate-800 rounded-xl flex justify-center overflow-x-auto">
-                        <MermaidViewer chart={codeText} />
-                      </div>
-                    )
+                    let codeText = ''
+                    if (typeof codeProps.children === 'string') {
+                      codeText = codeProps.children
+                    } else if (Array.isArray(codeProps.children)) {
+                      codeText = codeProps.children
+                        .map((c: any) => (typeof c === 'string' ? c : c?.props?.children || ''))
+                        .join('')
+                    } else {
+                      codeText = String(codeProps.children || '')
+                    }
+                    codeText = codeText.replace(/\n$/, '')
+
+                    if (lang === 'mermaid') {
+                      return <MermaidViewer chart={codeText} />
+                    }
+
+                    return <CodeBlock language={lang} value={codeText} />
                   }
 
-                  if (inline) {
-                    return (
-                      <code
-                        className="bg-slate-800 text-emerald-400 px-1.5 py-0.5 rounded text-[13px] font-mono border border-slate-700/60"
-                        {...props}
-                      >
-                        {children}
-                      </code>
-                    )
-                  }
-
-                  return <CodeBlock language={lang} value={codeText} />
+                  return (
+                    <pre className="my-5 rounded-xl overflow-hidden border border-slate-800 bg-slate-950/70 p-4 font-mono text-xs text-slate-200">
+                      {children}
+                    </pre>
+                  )
+                },
+                code: ({ node, className, children, ...props }: any) => {
+                  return (
+                    <code
+                      className="bg-slate-800 text-emerald-400 px-1.5 py-0.5 rounded text-[13px] font-mono border border-slate-700/60 font-medium"
+                      {...props}
+                    >
+                      {children}
+                    </code>
+                  )
                 },
               }}
             >
@@ -567,7 +609,7 @@ export function DocumentationViewer({
             ? `Documentación: ${repoCleanName}${activeSectionId !== 'all' ? ` - ${activeTitle}` : ''}`
             : activeTitle
         }
-        markdownContent={activeSectionId === 'all' ? doc.content : activeContent}
+        markdownContent={activeSectionId === 'all' ? cleanContent : activeContent}
       />
     </div>
   )

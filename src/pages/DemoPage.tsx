@@ -633,23 +633,43 @@ Módulo auxiliar dentro de la arquitectura de la aplicación. Proporciona utilid
                     strong: ({ ...props }) => (
                       <strong className="font-semibold text-slate-900 dark:text-slate-100" {...props} />
                     ),
-                    code: ({ inline, className, children, ...props }: any) => {
-                      if (inline) {
+                    pre: ({ children }: any) => {
+                      if (React.isValidElement(children)) {
+                        const codeProps = (children.props || {}) as { className?: string; children?: React.ReactNode }
+                        let codeText = ''
+                        if (typeof codeProps.children === 'string') {
+                          codeText = codeProps.children
+                        } else if (Array.isArray(codeProps.children)) {
+                          codeText = codeProps.children
+                            .map((c: any) => (typeof c === 'string' ? c : c?.props?.children || ''))
+                            .join('')
+                        } else {
+                          codeText = String(codeProps.children || '')
+                        }
+                        codeText = codeText.replace(/\n$/, '')
+
                         return (
-                          <code
-                            className="bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 px-1.5 py-0.5 rounded text-[13px] font-mono border border-slate-200/60 dark:border-slate-700/60"
-                            {...props}
-                          >
-                            {children}
-                          </code>
+                          <pre className="bg-slate-900 dark:bg-slate-950 text-slate-100 p-4 rounded-xl overflow-x-auto text-xs font-mono my-4 border border-slate-800">
+                            <code className={codeProps.className}>
+                              {codeText}
+                            </code>
+                          </pre>
                         )
                       }
                       return (
                         <pre className="bg-slate-900 dark:bg-slate-950 text-slate-100 p-4 rounded-xl overflow-x-auto text-xs font-mono my-4 border border-slate-800">
-                          <code className={className} {...props}>
-                            {children}
-                          </code>
+                          {children}
                         </pre>
+                      )
+                    },
+                    code: ({ node, className, children, ...props }: any) => {
+                      return (
+                        <code
+                          className="bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 px-1.5 py-0.5 rounded text-[13px] font-mono border border-slate-200/60 dark:border-slate-700/60"
+                          {...props}
+                        >
+                          {children}
+                        </code>
                       )
                     },
                   }}
